@@ -28,6 +28,8 @@ public class RandomContentFiller : MonoBehaviour
         {
             Destroy(text.gameObject);
         }
+
+        ActiveTexts.Clear();
     }
 
     private IEnumerator SpawnText()
