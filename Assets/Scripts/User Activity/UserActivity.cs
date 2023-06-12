@@ -11,7 +11,7 @@ using Touch = UnityEngine.InputSystem.EnhancedTouch.Touch;
 using TouchPhase =  UnityEngine.InputSystem.TouchPhase;
 
 /**
- * User activity detection with raycasting
+ * User activity detection without raycasting
  *
  * Using new input system 
  *
@@ -19,28 +19,11 @@ using TouchPhase =  UnityEngine.InputSystem.TouchPhase;
  * For example, when tracking activity on different canvases in a split-screen game
  */
 
-/**
- * To use new input system -->
- *
- * Follow
- * Unity C# - How to get the UI elements clicked (new input system)
- * https://www.youtube.com/watch?v=7h1cnGggY2M
- * Multiple Touches with the new input system (Android)?
- * https://www.reddit.com/r/unity_tutorials/comments/rkmn2l/multiple_touches_with_the_new_input_system_android/
- */
-
-public class UserActivityRaycaster : MonoBehaviour
+public class UserActivity : MonoBehaviour
 {
-    // Normal raycasts do not work on UI elements, they require a special kind
-    GraphicRaycaster raycaster;
-
     // [SerializeField] CanvasManager CanvasManager;
 
     // [SerializeField] ResetCountdown ResetCountdown;
-
-    PointerEventData pointerData = new PointerEventData(EventSystem.current);
-    List<RaycastResult> clickResults = new List<RaycastResult>();
-    List<RaycastResult> touchResults = new List<RaycastResult>();
 
     [SerializeField] float InactivityTimeoutSeconds = 5;
 
@@ -49,8 +32,6 @@ public class UserActivityRaycaster : MonoBehaviour
 
     void Awake()
     {
-        this.raycaster = GetComponent<GraphicRaycaster>();
-
         EnhancedTouchSupport.Enable();
     }
 
@@ -64,18 +45,7 @@ public class UserActivityRaycaster : MonoBehaviour
         // Check if the left mouse button is clicked
         if (Mouse.current.leftButton.wasPressedThisFrame)
         {
-            // Debug.Log("Mouse.current.leftButton.wasPressedThisFrame");
-
-            pointerData.position = Mouse.current.position.ReadValue();
-            clickResults.Clear();
-
-            this.raycaster.Raycast(pointerData, clickResults);
-
-            foreach (RaycastResult clickResult in clickResults)
-            {
-                Debug.Log("Clicked " + clickResult.gameObject.name);
-            }
-
+            Debug.Log("Mouse.current.leftButton.wasPressedThisFrame");
             ResetInvokeOnUserInactive();
         }
 
@@ -84,21 +54,7 @@ public class UserActivityRaycaster : MonoBehaviour
             Touch.activeTouches.Count > 0 && 
             Touch.activeTouches[0].phase == TouchPhase.Began
         ) {
-            // Debug.Log("At least one touch");
-
-            Touch touch = Touch.activeTouches[0];
-
-            // Raycast using the Graphics Raycaster and initial touch position (touch.rawPosition)
-            pointerData.position = touch.screenPosition;
-            touchResults.Clear();
-
-            this.raycaster.Raycast(pointerData, touchResults);
-
-            foreach (RaycastResult touchResult in touchResults)
-            {
-                Debug.Log("Touched " + touchResult.gameObject.name);
-            }
-
+            Debug.Log("At least one touch");
             ResetInvokeOnUserInactive();
         }
     }
