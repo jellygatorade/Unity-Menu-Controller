@@ -10,6 +10,8 @@ public class RandomContentFiller : MonoBehaviour
     [SerializeField]
     private float SpawnSpeed = 10;
     [SerializeField]
+    private float FallSpeed = 10;
+    [SerializeField]
     private Transform Parent;
 
     private Coroutine SpawningCoroutine;
@@ -41,7 +43,7 @@ public class RandomContentFiller : MonoBehaviour
             text.SetText(Random.value > 0.5f ? "1" : "0");
             text.rectTransform.SetParent(Parent, false);
             text.rectTransform.anchoredPosition = new Vector2(Random.Range(25, Screen.width - 25), 25);
-            text.GetComponent<Rigidbody2D>().AddForce(Vector2.down * 100, ForceMode2D.Impulse);
+            text.GetComponent<Rigidbody2D>().AddForce(Vector2.down * FallSpeed, ForceMode2D.Impulse);
             ActiveTexts.Add(text);
             yield return Wait;
         }

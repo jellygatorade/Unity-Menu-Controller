@@ -45,7 +45,7 @@ public class UserActivity : MonoBehaviour
         // Check if the left mouse button is clicked
         if (Mouse.current.leftButton.wasPressedThisFrame)
         {
-            Debug.Log("Mouse.current.leftButton.wasPressedThisFrame");
+            // Debug.Log("Mouse.current.leftButton.wasPressedThisFrame");
             ResetInvokeOnUserInactive();
         }
 
@@ -54,7 +54,7 @@ public class UserActivity : MonoBehaviour
             Touch.activeTouches.Count > 0 && 
             Touch.activeTouches[0].phase == TouchPhase.Began
         ) {
-            Debug.Log("At least one touch");
+            // Debug.Log("At least one touch");
             ResetInvokeOnUserInactive();
         }
     }
@@ -63,7 +63,7 @@ public class UserActivity : MonoBehaviour
     // StartCoroutine, WaitForSeconds, StopCoroutine
     public void ResetInvokeOnUserInactive()
     {
-        Debug.Log("User is active on " + this.gameObject);
+        // Debug.Log("User is active on " + this.gameObject);
 
         CancelInvoke();
 
@@ -73,19 +73,19 @@ public class UserActivity : MonoBehaviour
 
         if (TimerActive)
         {
-            Debug.Log("TimerActive, resetting");
+            // Debug.Log("TimerActive, resetting");
             Invoke("OnUserInactive", InactivityTimeoutSeconds);
         }
         else 
         {
-            Debug.Log("Timer is not active, not reseting");
+            // Debug.Log("Timer is not active, not resetting");
         }
     }
 
     void OnUserInactive()
     {
         Debug.Log("User is inactive on " + this.gameObject);
-        Debug.Log("Launch an inactivity timeout countdown");
+        // Debug.Log("Launch an inactivity timeout countdown");
 
         // Launch the reset timer countdown
 
