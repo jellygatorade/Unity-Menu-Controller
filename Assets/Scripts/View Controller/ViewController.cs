@@ -16,6 +16,8 @@ public class ViewController : MonoBehaviour
 
     private Stack<View> ViewStack = new Stack<View>();
 
+    private Coroutine VCCoroutine;
+
     private void Awake()
     {
         RootCanvas = GetComponent<Canvas>();
@@ -61,10 +63,16 @@ public class ViewController : MonoBehaviour
         {
             View currentView = ViewStack.Peek();
 
-            if (currentView.ExitOnNewViewPush)
+            if (View.AlwaysOverlay)
+            {
+                View.Enter(true);
+                ViewStack.Push(View);
+            }
+            else if (currentView.ExitOnNewViewPush)
             {
                 currentView.Exit(false);
-                StartCoroutine(DelayEnter(currentView.AnimationDuration, View, true));
+                ResetCoroutine();
+                VCCoroutine = StartCoroutine(DelayEnter(currentView.AnimationDuration, View, true));
             }
             else
             {
@@ -89,7 +97,8 @@ public class ViewController : MonoBehaviour
             View newCurrentView = ViewStack.Peek();
             if (newCurrentView.ExitOnNewViewPush)
             {
-                StartCoroutine(DelayEnter(lastView.AnimationDuration, newCurrentView, false));
+                ResetCoroutine();
+                VCCoroutine = StartCoroutine(DelayEnter(lastView.AnimationDuration, newCurrentView, false));
             }
         }
         else
@@ -100,7 +109,9 @@ public class ViewController : MonoBehaviour
 
     public void PopAllViews()
     {
-        for (int i = 1; i < ViewStack.Count; i++)
+        int numViews = ViewStack.Count;
+
+        for (int i = 1; i < numViews; i++)
         {
             PopView();
         }
@@ -115,6 +126,14 @@ public class ViewController : MonoBehaviour
         if (Push)
         {
             ViewStack.Push(View);
+        }
+    }
+
+    private void ResetCoroutine()
+    {
+        if (VCCoroutine != null)
+        {
+            StopCoroutine(VCCoroutine);
         }
     }
 }

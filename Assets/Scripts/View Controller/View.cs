@@ -12,6 +12,7 @@ public class View : MonoBehaviour
 
     [Tooltip("Duration of entry / exit animation in seconds.")]
     public float AnimationDuration = 0.3f;
+    public bool AlwaysOverlay = false;
     public bool ExitOnNewViewPush = false;
     [SerializeField]
     private AudioClip EntryClip;

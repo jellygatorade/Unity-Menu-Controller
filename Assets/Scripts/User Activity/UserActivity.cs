@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.Events;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.EnhancedTouch;
@@ -26,6 +27,9 @@ public class UserActivity : MonoBehaviour
     // [SerializeField] ResetCountdown ResetCountdown;
 
     [SerializeField] float InactivityTimeoutSeconds = 5;
+
+    [SerializeField]
+    private UnityEvent InactivityAction;
 
     [HideInInspector]
     public bool TimerActive = true;
@@ -85,12 +89,9 @@ public class UserActivity : MonoBehaviour
     void OnUserInactive()
     {
         Debug.Log("User is inactive on " + this.gameObject);
-        // Debug.Log("Launch an inactivity timeout countdown");
-
-        // Launch the reset timer countdown
-
-        //CanvasManager.FadeIn(CanvasManager.InactivityResetOverlay);
-        //ResetCountdown.RestartTimer();
+        
+        setTimerInactive();
+        InactivityAction?.Invoke();
     }
 
     public void setTimerInactive()
