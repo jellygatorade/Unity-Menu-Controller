@@ -21,8 +21,8 @@ public class ResetCountdown : MonoBehaviour
     private StringVariable StringVariable = new StringVariable();
     private string stringTimeRemaining = "Clock not yet started.";
 
-    [SerializeField]
-    private UnityEvent InactivityAction;
+    [SerializeField] ViewController ViewController;
+    [SerializeField] UserActivity UserActivity;
 
     void Awake()
     {   
@@ -56,7 +56,8 @@ public class ResetCountdown : MonoBehaviour
                 timeRemaining = 0;
                 timerIsRunning = false;
 
-                InactivityAction?.Invoke();
+                ViewController.PopAllViews();
+                UserActivity.setTimerActive();
             }
         }
     }

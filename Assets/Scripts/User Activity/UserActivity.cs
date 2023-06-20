@@ -22,14 +22,13 @@ using TouchPhase =  UnityEngine.InputSystem.TouchPhase;
 
 public class UserActivity : MonoBehaviour
 {
-    // [SerializeField] CanvasManager CanvasManager;
+    [SerializeField] ResetCountdown ResetCountdown;
 
-    // [SerializeField] ResetCountdown ResetCountdown;
+    [SerializeField] ViewController ViewController;
+
+    [SerializeField] View InactivityView;
 
     [SerializeField] float InactivityTimeoutSeconds = 5;
-
-    [SerializeField]
-    private UnityEvent InactivityAction;
 
     [HideInInspector]
     public bool TimerActive = true;
@@ -69,11 +68,15 @@ public class UserActivity : MonoBehaviour
     {
         // Debug.Log("User is active on " + this.gameObject);
 
-        CancelInvoke();
+        CancelInvoke("OnUserInactive");
 
         // Remove inactivity timeout countdown
-        //CanvasManager.FadeOut(CanvasManager.InactivityResetOverlay);
-        //ResetCountdown.StopAndResetTimer();
+        if (ViewController.IsViewOnTopOfStack(InactivityView))
+        {
+            ViewController.PopView();
+            ResetCountdown.StopAndResetTimer();
+            setTimerActive();
+        }
 
         if (TimerActive)
         {
@@ -86,12 +89,13 @@ public class UserActivity : MonoBehaviour
         }
     }
 
-    void OnUserInactive()
+    private void OnUserInactive()
     {
-        Debug.Log("User is inactive on " + this.gameObject);
+        // Debug.Log("User is inactive on " + this.gameObject);
         
         setTimerInactive();
-        InactivityAction?.Invoke();
+        ResetCountdown.RestartTimer();
+        ViewController.PushView(InactivityView);
     }
 
     public void setTimerInactive()
