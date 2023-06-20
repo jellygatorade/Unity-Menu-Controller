@@ -93,6 +93,7 @@ public class ViewController : MonoBehaviour
         {
             View lastView = ViewStack.Pop();
             lastView.Exit(true);
+            
             if (!lastView.AlwaysOverlay) // transition in next view if not already shown due to lastView.AlwaysOverlay
             {
                 View newCurrentView = ViewStack.Peek();
