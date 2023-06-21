@@ -12,10 +12,8 @@ public class View : MonoBehaviour
 
     [Tooltip("Duration of entry / exit animation in seconds.")]
     public float AnimationDuration = 0.3f;
-    [Tooltip("Disregard ExitOnNewViewPush, currently only intended for Inactivity View")]
+    [Tooltip("Prevent previous view exit")]
     public bool AlwaysOverlay = false;
-    [Tooltip("Disregarded when next view has Always Overlay.")]
-    public bool ExitOnNewViewPush = false;
     [SerializeField]
     private AudioClip EntryClip;
     [SerializeField]

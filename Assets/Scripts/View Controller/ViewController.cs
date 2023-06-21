@@ -63,21 +63,16 @@ public class ViewController : MonoBehaviour
         {
             View currentView = ViewStack.Peek();
 
-            if (View.AlwaysOverlay) // disgregard currentView.ExitOnNewViewPush
+            if (View.AlwaysOverlay)
             {
                 View.Enter(true);
                 ViewStack.Push(View);
             }
-            else if (currentView.ExitOnNewViewPush)
+            else
             {
                 currentView.Exit(false);
                 ResetCoroutine();
                 VCCoroutine = StartCoroutine(DelayEnter(currentView.AnimationDuration, View, true));
-            }
-            else
-            {
-                View.Enter(true);
-                ViewStack.Push(View);
             }
         }
         else
@@ -97,11 +92,8 @@ public class ViewController : MonoBehaviour
             if (!lastView.AlwaysOverlay) // transition in next view if not already shown due to lastView.AlwaysOverlay
             {
                 View newCurrentView = ViewStack.Peek();
-                if (newCurrentView.ExitOnNewViewPush)
-                {
-                    ResetCoroutine();
-                    VCCoroutine = StartCoroutine(DelayEnter(lastView.AnimationDuration, newCurrentView, false));
-                }
+                ResetCoroutine();
+                VCCoroutine = StartCoroutine(DelayEnter(lastView.AnimationDuration, newCurrentView, false));
             }
         }
         else
