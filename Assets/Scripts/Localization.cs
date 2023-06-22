@@ -39,14 +39,33 @@ public class Localization : MonoBehaviour
             }
         }
 
+        // Set initial locale to English
+        ApplyLocale(EnLocale);
+
+        // For splitscreen usage below ->
+        
         // Initialize reference to check locale override status within ApplyLocaleOverride
         LocalizeStringEventRef = ViewController.GetComponentInChildren<LocalizeStringEvent>();
-
-        // Set initial locale override to English
-        ApplyLocaleOverride(EnLocale, ViewController.gameObject);
+        
+        // Set initial locale override to English for all descendants of ViewController.gameObject
+        //ApplyLocaleOverride(EnLocale, ViewController.gameObject);
     }
 
-    public void ChangeLang() 
+    // Toggle locale for entire game
+    public void ToggleLocale()
+    {
+        if (LocalizationSettings.SelectedLocale == EnLocale)
+        {
+            ApplyLocale(EsLocale);
+        }
+        else if (LocalizationSettings.SelectedLocale == EsLocale)
+        {
+            ApplyLocale(EnLocale);
+        }
+    }
+
+    // For splitscreen usage - toggle locale override for all descendants of ViewController.gameObject
+    public void ToggleLocaleOverride() 
     {
         if (LocalizeStringEventRef.StringReference.LocaleOverride == EnLocale)
         {
@@ -56,23 +75,15 @@ public class Localization : MonoBehaviour
         {
             ApplyLocaleOverride(EnLocale, ViewController.gameObject);
         }
-        /*****************************************************************
-        * Testing here
-        *****************************************************************/
-        // Debug.Log("hello!");
-        // Debug.Log(LocalizationSettings.StringDatabase);
-        // Debug.Log(LocalizeStringEventRef.StringReference.LocaleOverride);
-        // Debug.Log(LocalizationSettings.StringDatabase.GetLocalizedStringAsync("Home Canvas", "ModalContent", LocalizeStringEventRef.StringReference.LocaleOverride).Result);
-        // Debug.Log(LocalizationSettings.StringDatabase.GetLocalizedStringAsync("Home Canvas", "ModalContent", EnLocale).Result);
-        // Debug.Log(LocalizationSettings.StringDatabase.GetLocalizedStringAsync("Home Canvas", "ModalContent", EsLocale).Result);
-        // Debug.Log(LocalizationSettings.StringDatabase.GetLocalizedString("Home Canvas", "ModalContent", EnLocale));
-        // Debug.Log(LocalizationSettings.StringDatabase.GetLocalizedString("Home Canvas", "ModalContent", EsLocale));
-        /*****************************************************************
-        * End testing
-        *****************************************************************/
 	}
 
-    // Override locale per canvas by looping through each LocalizeStringEvent component within a canvas
+    // Apply locale to entire game
+    private void ApplyLocale(Locale locale)
+    {
+        LocalizationSettings.SelectedLocale = locale;
+    }
+
+    // For splitscreen usage - override locale per canvas by looping through each LocalizeStringEvent component within a canvas
     private void ApplyLocaleOverride(Locale locale, GameObject canvasRoot)
     {
         foreach(var LocalizeStringEvent in canvasRoot.GetComponentsInChildren<LocalizeStringEvent>(true)) // Pass includeInactive param as true to get inactive UI strings too
