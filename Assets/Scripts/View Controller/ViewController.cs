@@ -40,9 +40,13 @@ public class ViewController : MonoBehaviour
     {
         if (RootCanvas.enabled && RootCanvas.gameObject.activeInHierarchy)
         {
-            if (ViewStack.Count != 0)
+            if (ViewStack.Count > 1)
             {
                 PopView();
+            }
+            else if  (ViewStack.Count == 1)
+            {
+                Application.Quit();
             }
         }
     }
