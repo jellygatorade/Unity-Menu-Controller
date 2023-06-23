@@ -44,6 +44,10 @@ public class View : MonoBehaviour
         CanvasGroup = GetComponent<CanvasGroup>();
         AudioSource = GetComponent<AudioSource>();
 
+        CanvasGroup.alpha = 0;
+        CanvasGroup.blocksRaycasts = false;
+        CanvasGroup.interactable = false;
+
         AudioSource.playOnAwake = false;
         AudioSource.loop = false;
         AudioSource.spatialBlend = 0;

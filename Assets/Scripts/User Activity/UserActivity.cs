@@ -30,8 +30,7 @@ public class UserActivity : MonoBehaviour
 
     [SerializeField] float InactivityTimeoutSeconds = 5;
 
-    [HideInInspector]
-    public bool TimerActive = true;
+    private bool TimerActive = false;
 
     void Awake()
     {
@@ -39,7 +38,7 @@ public class UserActivity : MonoBehaviour
     }
 
     void Start() 
-    {
+    {   
         ResetInvokeOnUserInactive();
     }
 
@@ -80,12 +79,12 @@ public class UserActivity : MonoBehaviour
 
         if (TimerActive)
         {
-            // Debug.Log("TimerActive, resetting");
+            //Debug.Log("TimerActive, resetting");
             Invoke("OnUserInactive", InactivityTimeoutSeconds);
         }
         else 
         {
-            // Debug.Log("Timer is not active, not resetting");
+            //Debug.Log("Timer is not active, not resetting");
         }
     }
 

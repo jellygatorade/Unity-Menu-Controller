@@ -7,10 +7,9 @@ using UnityEngine.EventSystems;
 [DisallowMultipleComponent]
 public class ViewController : MonoBehaviour
 {
-    [SerializeField]
-    private View InitialView;
-    [SerializeField]
-    private GameObject FirstFocusItem;
+    [SerializeField] private View HomeView;
+    [SerializeField] private GameObject FirstFocusItem;
+    [SerializeField] private View InitializationView;
 
     private Canvas RootCanvas;
 
@@ -25,14 +24,9 @@ public class ViewController : MonoBehaviour
 
     private void Start()
     {
-        if (FirstFocusItem != null)
+        if (InitializationView != null)
         {
-            EventSystem.current.SetSelectedGameObject(FirstFocusItem);
-        }
-
-        if (InitialView != null)
-        {
-            PushView(InitialView);
+            PushView(InitializationView);
         }
     }
 
@@ -59,6 +53,27 @@ public class ViewController : MonoBehaviour
     public bool IsViewOnTopOfStack(View View)
     {
         return ViewStack.Count > 0 && View == ViewStack.Peek();
+    }
+
+    // Switch from InitializationView to HomeView
+    // This prevents a loading view from being at the bottom of the stack
+    public void InitHomeView()
+    {
+        View currentView = ViewStack.Peek();
+
+        if (currentView == InitializationView)
+        {
+            ViewStack.Pop();
+            currentView.Exit(false);
+            
+            ResetCoroutine();
+            VCCoroutine = StartCoroutine(DelayEnter(HomeView.AnimationDuration, HomeView, true));
+
+            if (FirstFocusItem != null)
+            {
+                EventSystem.current.SetSelectedGameObject(FirstFocusItem);
+            }
+        }
     }
 
     public void PushView(View View)
@@ -109,11 +124,35 @@ public class ViewController : MonoBehaviour
     public void PopAllViews()
     {
         int numViews = ViewStack.Count;
+        bool foundLowestVisible = false;
+        float entryDelay = 0.3f;
 
-        for (int i = 1; i < numViews; i++)
+        // Transition out all views until first found that is not an overlay
+        // Remove all others silently
+        for (int i = 0; i < numViews; i++)
         {
-            PopView();
+            View currentView = ViewStack.Peek();
+
+            if (foundLowestVisible)
+            {
+                ViewStack.Pop(); // remove silently
+            }
+            else 
+            {
+                ViewStack.Pop();
+                currentView.Exit(true); // transition out
+            }
+
+            if (!foundLowestVisible && !currentView.AlwaysOverlay)
+            {
+                foundLowestVisible = true;
+                entryDelay = currentView.AnimationDuration;
+            }
         }
+
+        // Transition in HomeView
+        ResetCoroutine();
+        VCCoroutine = StartCoroutine(DelayEnter(entryDelay, HomeView, true));
     }
 
     private IEnumerator DelayEnter(float seconds, View View, bool Push)

@@ -4,14 +4,18 @@ using UnityEngine;
 using UnityEngine.Localization;
 using UnityEngine.Localization.Settings;
 using UnityEngine.Localization.Components;
+using UnityEngine.Events;
 
 public class Localization : MonoBehaviour
 {
-    [SerializeField] ViewController ViewController;
+    [SerializeField] private ViewController ViewController;
 
     private LocalizeStringEvent LocalizeStringEventRef;
     private Locale EnLocale;
     private Locale EsLocale;
+
+    [SerializeField]
+    private UnityEvent OnReadyAction;
 
     // Start is called before the first frame update
     IEnumerator Start()
@@ -40,15 +44,16 @@ public class Localization : MonoBehaviour
         }
 
         // Set initial locale to English
-        ApplyLocale(EnLocale);
-
-        // For splitscreen usage below ->
+        // ApplyLocale(EnLocale);
         
-        // Initialize reference to check locale override status within ApplyLocaleOverride
+        // For splitscreen - Initialize reference to check locale override status within ApplyLocaleOverride
         LocalizeStringEventRef = ViewController.GetComponentInChildren<LocalizeStringEvent>();
         
-        // Set initial locale override to English for all descendants of ViewController.gameObject
+        // For splitscreen - Set initial locale override to English for all descendants of ViewController.gameObject
         //ApplyLocaleOverride(EnLocale, ViewController.gameObject);
+
+        // Invoke post initialization action (remove a loading screen)
+        OnReadyAction?.Invoke();
     }
 
     // Toggle locale for entire game

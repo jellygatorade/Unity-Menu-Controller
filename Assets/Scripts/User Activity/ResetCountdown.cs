@@ -57,7 +57,6 @@ public class ResetCountdown : MonoBehaviour
                 timerIsRunning = false;
 
                 ViewController.PopAllViews();
-                UserActivity.setTimerActive();
             }
         }
     }
