@@ -7,15 +7,17 @@ using UnityEngine.EventSystems;
 [DisallowMultipleComponent]
 public class ViewController : MonoBehaviour
 {
-    [SerializeField] private View HomeView;
-    [SerializeField] private GameObject FirstFocusItem;
     [SerializeField] private View InitializationView;
+    [SerializeField] public View IdleView;
+    [SerializeField] private GameObject FirstFocusItem;
+    [SerializeField] private View MainMenuView;
+    [SerializeField] public View InactivityView;
 
     private Canvas RootCanvas;
 
     private Stack<View> ViewStack = new Stack<View>();
 
-    private Coroutine VCCoroutine;
+    private List<Coroutine> VCCoroutineList = new List<Coroutine>();
 
     private void Awake()
     {
@@ -36,7 +38,7 @@ public class ViewController : MonoBehaviour
         {
             if (ViewStack.Count > 1)
             {
-                PopView();
+                PopOneView();
             }
             else if  (ViewStack.Count == 1)
             {
@@ -55,19 +57,17 @@ public class ViewController : MonoBehaviour
         return ViewStack.Count > 0 && View == ViewStack.Peek();
     }
 
-    // Switch from InitializationView to HomeView
+    // Switch from InitializationView to IdleView
     // This prevents a loading view from being at the bottom of the stack
-    public void InitHomeView()
+    public void InitIdleView()
     {
-        View currentView = ViewStack.Peek();
-
-        if (currentView == InitializationView)
+        if (IsViewOnTopOfStack(InitializationView))
         {
-            ViewStack.Pop();
+            View currentView = ViewStack.Pop();
             currentView.Exit(false);
             
-            ResetCoroutine();
-            VCCoroutine = StartCoroutine(DelayEnter(HomeView.AnimationDuration, HomeView, true));
+            ResetCoroutineList();
+            VCCoroutineList.Add(StartCoroutine(DelayEnter(IdleView.AnimationDuration, IdleView, audio: true, push: true)));
 
             if (FirstFocusItem != null)
             {
@@ -76,12 +76,11 @@ public class ViewController : MonoBehaviour
         }
     }
 
+    // REVISIT IF ELSE STACK HERE
     public void PushView(View View)
     {
         if (ViewStack.Count > 0)
         {
-            View currentView = ViewStack.Peek();
-
             if (View.AlwaysOverlay)
             {
                 View.Enter(true);
@@ -89,9 +88,9 @@ public class ViewController : MonoBehaviour
             }
             else
             {
-                currentView.Exit(false);
-                ResetCoroutine();
-                VCCoroutine = StartCoroutine(DelayEnter(currentView.AnimationDuration, View, true));
+                ResetCoroutineList();
+                float entryDelay = ExitVisibleViews(audio: false);
+                VCCoroutineList.Add(StartCoroutine(DelayEnter(entryDelay, View, audio: true, push: true)));
             }
         }
         else
@@ -101,77 +100,138 @@ public class ViewController : MonoBehaviour
         }
     }
 
-    public void PopView()
+    public void PopOneView()
     {
         if (ViewStack.Count > 1)
         {
             View lastView = ViewStack.Pop();
             lastView.Exit(true);
-            
-            if (!lastView.AlwaysOverlay) // transition in next view if not already shown due to lastView.AlwaysOverlay
+
+            // transition in next view(s) if not already shown due to View.AlwaysOverlay
+            if (!lastView.AlwaysOverlay)
             {
-                View newCurrentView = ViewStack.Peek();
-                ResetCoroutine();
-                VCCoroutine = StartCoroutine(DelayEnter(lastView.AnimationDuration, newCurrentView, false));
+                ResetCoroutineList();
+                List<View> ViewsToEnter = FindVisibleViews(keep: false);
+                foreach (View view in ViewsToEnter)
+                {
+                    VCCoroutineList.Add(StartCoroutine(DelayEnter(lastView.AnimationDuration, view, audio: false, push: true)));
+                }
             }
         }
         else
         {
-            Debug.LogWarning("Trying to pop a view but only 1 view remains in the stack!");
+            Debug.LogWarning($"Trying to pop a view but only 1 view remains in the stack! {ViewStack.Peek().name}");
         }
     }
 
-    public void PopAllViews()
+    // FIX TO ONLY PLAY AUDIO FOR FIRST EXIT
+    public void PopViewsToMainMenu()
     {
-        int numViews = ViewStack.Count;
-        bool foundLowestVisible = false;
-        float entryDelay = 0.3f;
+        // Transition out visible views, then pop all
+        float entryDelay = ExitVisibleViews(audio: true);
 
-        // Transition out all views until first found that is not an overlay
-        // Remove all others silently
+        int numViews = ViewStack.Count;
         for (int i = 0; i < numViews; i++)
         {
-            View currentView = ViewStack.Peek();
+            ViewStack.Pop();
+        }
 
-            if (foundLowestVisible)
+        ViewStack.Push(IdleView);
+
+        // Transition in MainMenuView
+        ResetCoroutineList();
+        VCCoroutineList.Add(StartCoroutine(DelayEnter(entryDelay, MainMenuView, audio: false, push: true)));
+    }
+
+    // FIX TO ONLY PLAY AUDIO FOR FIRST EXIT
+    public void PopAllViews()
+    {
+        // Transition out visible views, then pop all
+        float entryDelay = ExitVisibleViews(audio: true);
+
+        int numViews = ViewStack.Count;
+        for (int i = 0; i < numViews; i++)
+        {
+            ViewStack.Pop();
+        }
+
+        // Transition in IdleView
+        ResetCoroutineList();
+        VCCoroutineList.Add(StartCoroutine(DelayEnter(entryDelay, IdleView, audio: false, push: true)));
+    }
+
+    private float ExitVisibleViews(bool audio)
+    {
+        List<View> VisibleViews = FindVisibleViews(keep: true);
+        float LongestAnim = 0.0f;
+        bool first = true;
+        bool playAudio = audio;
+
+        foreach (View view in VisibleViews)
+        {
+            if (first)
             {
-                ViewStack.Pop(); // remove silently
+                view.Exit(playAudio);
+                first = false;
             }
             else 
             {
-                ViewStack.Pop();
-                currentView.Exit(true); // transition out
+                view.Exit(false);
             }
 
-            if (!foundLowestVisible && !currentView.AlwaysOverlay)
+            if (view.AnimationDuration > LongestAnim) LongestAnim = view.AnimationDuration;
+        }
+
+        return LongestAnim;
+    }
+    
+    private List<View> FindVisibleViews(bool keep)
+    {
+        int numViews = ViewStack.Count;
+        List<View> VisibleViews = new List<View>();
+
+        for (int i = 0; i < numViews; i++)
+        {   
+            View view = ViewStack.Pop();
+
+            VisibleViews.Insert(0, view); // insert at beginning
+
+            if (!view.AlwaysOverlay) break;
+        }
+
+        if (keep) // ensure views remain in ViewStack
+        {
+            for (int i = 0; i < VisibleViews.Count; i++)
             {
-                foundLowestVisible = true;
-                entryDelay = currentView.AnimationDuration;
+                ViewStack.Push(VisibleViews[i]);
             }
         }
 
-        // Transition in HomeView
-        ResetCoroutine();
-        VCCoroutine = StartCoroutine(DelayEnter(entryDelay, HomeView, true));
+        return VisibleViews;
     }
 
-    private IEnumerator DelayEnter(float seconds, View View, bool Push)
+    private IEnumerator DelayEnter(float seconds, View View, bool audio, bool push)
     {
         yield return new WaitForSeconds(seconds);
         
-        View.Enter(Push);
+        View.Enter(audio);
 
-        if (Push)
+        if (push)
         {
             ViewStack.Push(View);
         }
     }
 
-    private void ResetCoroutine()
+    private void ResetCoroutineList()
     {
-        if (VCCoroutine != null)
+        if (VCCoroutineList.Count > 0)
         {
-            StopCoroutine(VCCoroutine);
+            foreach (Coroutine CR in VCCoroutineList)
+            {
+                StopCoroutine(CR);
+            }
+
+            VCCoroutineList.Clear();
         }
     }
 }

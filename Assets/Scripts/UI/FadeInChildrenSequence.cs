@@ -10,6 +10,7 @@ public class FadeInChildrenSequence : MonoBehaviour
 
     [Tooltip("Duration of fade in animation in seconds.")]
     [SerializeField] private float AnimationDuration = 0.3f;
+    [SerializeField] private float StepDelay = 0.3f;
 
     private Coroutine SequenceCoroutine;
     private Coroutine AnimationCoroutine;
@@ -30,7 +31,7 @@ public class FadeInChildrenSequence : MonoBehaviour
 
     public void Animate(GameObject parent)
     {
-        SequenceCoroutine = StartCoroutine(EnterChildren(parent, AnimationDuration));
+        SequenceCoroutine = StartCoroutine(EnterChildren(parent, StepDelay, AnimationDuration));
     }
 
     public void Cancel()
@@ -46,12 +47,12 @@ public class FadeInChildrenSequence : MonoBehaviour
         }
     }
 
-    private IEnumerator EnterChildren(GameObject parent, float delay)
+    private IEnumerator EnterChildren(GameObject parent, float stepDelay, float animDuration)
     {
         foreach(Transform child in parent.transform)
         {
-            AnimationCoroutine = StartCoroutine(AnimationHandler.NewFadeIn(child.gameObject.GetComponent<CanvasGroup>(), delay, null));
-            yield return new WaitForSeconds(delay);
+            AnimationCoroutine = StartCoroutine(AnimationHandler.NewFadeIn(child.gameObject.GetComponent<CanvasGroup>(), animDuration, null));
+            yield return new WaitForSeconds(stepDelay);
         }
     }
 }

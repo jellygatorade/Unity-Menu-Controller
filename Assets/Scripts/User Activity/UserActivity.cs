@@ -26,8 +26,6 @@ public class UserActivity : MonoBehaviour
 
     [SerializeField] ViewController ViewController;
 
-    [SerializeField] View InactivityView;
-
     [SerializeField] float InactivityTimeoutSeconds = 5;
 
     private bool TimerActive = false;
@@ -42,8 +40,21 @@ public class UserActivity : MonoBehaviour
         ResetInvokeOnUserInactive();
     }
 
-    void Update()
+    private void OnCancel() 
     {   
+        if (!ViewController.IsViewOnTopOfStack(ViewController.IdleView))
+        {
+            ResetCountdown.StopAndResetTimer();
+            setTimerActive();
+        }
+
+        ResetInvokeOnUserInactive();
+    }
+
+    private void Update()
+    {   
+        // Cancel is captured as a user activity action above (Esc key)
+
         // Check if the left mouse button is clicked
         if (Mouse.current.leftButton.wasPressedThisFrame)
         {
@@ -65,26 +76,26 @@ public class UserActivity : MonoBehaviour
     // StartCoroutine, WaitForSeconds, StopCoroutine
     public void ResetInvokeOnUserInactive()
     {
-        // Debug.Log("User is active on " + this.gameObject);
+        //Debug.Log("User is active on " + this.gameObject);
 
         CancelInvoke("OnUserInactive");
 
         // Remove inactivity timeout countdown
-        if (ViewController.IsViewOnTopOfStack(InactivityView))
+        if (ViewController.IsViewOnTopOfStack(ViewController.InactivityView))
         {
-            ViewController.PopView();
+            ViewController.PopOneView();
             ResetCountdown.StopAndResetTimer();
             setTimerActive();
         }
 
         if (TimerActive)
         {
-            //Debug.Log("TimerActive, resetting");
+            // Debug.Log("TimerActive, resetting");
             Invoke("OnUserInactive", InactivityTimeoutSeconds);
         }
         else 
         {
-            //Debug.Log("Timer is not active, not resetting");
+            // Debug.Log("Timer is not active, not resetting");
         }
     }
 
@@ -94,16 +105,18 @@ public class UserActivity : MonoBehaviour
         
         setTimerInactive();
         ResetCountdown.RestartTimer();
-        ViewController.PushView(InactivityView);
+        ViewController.PushView(ViewController.InactivityView);
     }
 
     public void setTimerInactive()
     {
+        // Debug.Log("setTimerInactive");
         TimerActive = false;
     }
 
     public void setTimerActive()
     {
+        // Debug.Log("setTimerActive");
         TimerActive = true;
     }
 }

@@ -22,9 +22,10 @@ public class ResetCountdown : MonoBehaviour
     private string stringTimeRemaining = "Clock not yet started.";
 
     [SerializeField] ViewController ViewController;
-    [SerializeField] UserActivity UserActivity;
 
-    void Awake()
+    private Coroutine CountdownCoroutine;
+
+    private void Awake()
     {   
         InitComponents();
     }
@@ -40,48 +41,52 @@ public class ResetCountdown : MonoBehaviour
         timeRemaining = InactivityCountdownSeconds;
     }
 
-    void Update()
-    {
-        if (timerIsRunning)
-        {
-            if (timeRemaining > 0)
-            {   
-                // Increment countdown
-                timeRemaining -= Time.deltaTime;
-                DisplayTime(timeRemaining);
-            }
-            else
-            {   
-                // Ensure timer is 0, stopped, and invoke inactivity actions
-                timeRemaining = 0;
-                timerIsRunning = false;
-
-                ViewController.PopAllViews();
-            }
-        }
-    }
-
     private void DisplayTime(float timeToDisplay)
     {
-        // Format the time to be printed to
-        timeToDisplay += 1;
+        // Format the time
         float minutes = Mathf.FloorToInt(timeToDisplay / 60); 
         float seconds = Mathf.FloorToInt(timeToDisplay % 60);
         stringTimeRemaining = string.Format("{0:00}:{1:00}", minutes, seconds); // as a string
         StringVariable.Value = stringTimeRemaining; // as a StringVariable to insert into a LocalizedStringEvent.StringReference
 
-        // Debug.Log(StringVariable.Value + ", " + CountdownText);
+        //Debug.Log($"DisplayTime! {stringTimeRemaining}");
     }
 
     public void RestartTimer()
     {
+        if (CountdownCoroutine != null)
+        {
+            StopCoroutine(CountdownCoroutine);
+        }
+
         timeRemaining = InactivityCountdownSeconds;
-        timerIsRunning = true;
+        CountdownCoroutine = StartCoroutine(DoTimer());
     }
 
     public void StopAndResetTimer()
     {
+        if (CountdownCoroutine != null)
+        {
+            StopCoroutine(CountdownCoroutine);
+        }
+
         timeRemaining = InactivityCountdownSeconds;
-        timerIsRunning = false;
+    }
+
+    private IEnumerator DoTimer()
+    {
+        while (timeRemaining > 0)
+        {   
+            // Increment countdown
+            DisplayTime(timeRemaining);
+            timeRemaining--;
+
+            yield return new WaitForSeconds(1f);
+        }
+
+        DisplayTime(timeRemaining); // 00:00
+        yield return new WaitForSeconds(1f);
+
+        ViewController.PopAllViews();
     }
 }
