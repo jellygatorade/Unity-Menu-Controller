@@ -124,7 +124,6 @@ public class ViewController : MonoBehaviour
         }
     }
 
-    // FIX TO ONLY PLAY AUDIO FOR FIRST EXIT
     public void PopViewsToMainMenu()
     {
         // Transition out visible views, then pop all
@@ -143,7 +142,6 @@ public class ViewController : MonoBehaviour
         VCCoroutineList.Add(StartCoroutine(DelayEnter(entryDelay, MainMenuView, audio: false, push: true)));
     }
 
-    // FIX TO ONLY PLAY AUDIO FOR FIRST EXIT
     public void PopAllViews()
     {
         // Transition out visible views, then pop all
