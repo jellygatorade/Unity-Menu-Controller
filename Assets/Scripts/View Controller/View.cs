@@ -44,6 +44,11 @@ public class View : MonoBehaviour
         CanvasGroup = GetComponent<CanvasGroup>();
         AudioSource = GetComponent<AudioSource>();
 
+        // Reposition fit exactly the lower left (offsetMin), upper right (offsetMax) anchor points for runtime
+        Vector2 startPosition = GetInitialRuntimePosition();
+        RectTransform.offsetMin = RectTransform.offsetMax = startPosition;
+
+        // Initialize as inivisible, non-interactive
         CanvasGroup.alpha = 0;
         CanvasGroup.blocksRaycasts = false;
         CanvasGroup.interactable = false;
@@ -193,5 +198,31 @@ public class View : MonoBehaviour
         yield return Wait;
 
         AudioSource.enabled = false;
+    }
+
+    private Vector2 GetInitialRuntimePosition()
+    {
+        Vector2 startPosition;
+
+        switch (EntryDirection)
+        {
+            case Direction.UP:
+                startPosition = new Vector2(0, -Screen.height);
+                break;
+            case Direction.RIGHT:
+                startPosition = new Vector2(-Screen.width, 0);
+                break;
+            case Direction.DOWN:
+                startPosition = new Vector2(0, Screen.height);
+                break;
+            case Direction.LEFT:
+                startPosition = new Vector2(Screen.width, 0);
+                break;
+            default:
+                startPosition = new Vector2(0, 0);
+                break;
+        }
+
+        return startPosition;
     }
 }
