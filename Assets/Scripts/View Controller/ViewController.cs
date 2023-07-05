@@ -22,6 +22,31 @@ public class ViewController : MonoBehaviour
     private void Awake()
     {
         RootCanvas = GetComponent<Canvas>();
+
+        EventManager.AddListener("UserActive", OnUserActive);
+        EventManager.AddListener("UserInactive", OnUserInactive);
+        EventManager.AddListener("UserTimeout", OnUserTimeout);
+    }
+
+    private void OnUserActive(Dictionary<string, object> message)
+    {
+        if (IsViewOnTopOfStack(InactivityView))
+        {
+            PopOneView();
+        }
+    }
+
+    private void OnUserInactive(Dictionary<string, object> message)
+    {
+        if (!IsViewOnTopOfStack(InactivityView))
+        {
+            PushView(InactivityView);
+        }
+    }
+
+    private void OnUserTimeout(Dictionary<string, object> message)
+    {
+        PopAllViews();
     }
 
     private void Start()
@@ -80,7 +105,12 @@ public class ViewController : MonoBehaviour
     public void PushView(View View)
     {
         if (ViewStack.Count > 0)
-        {
+        {   
+            if (IsViewOnTopOfStack(View))
+            {
+                return;
+            }
+
             if (View.AlwaysOverlay)
             {
                 View.Enter(true);

@@ -9,19 +9,19 @@ using UnityEngine.Localization.SmartFormat.PersistentVariables;
 
 public class ResetCountdown : MonoBehaviour
 {
-    [HideInInspector]
-    public bool timerIsRunning = false;
+    // [HideInInspector]
+    // public bool timerIsRunning = false;
+
+    private float timeRemaining;
 
     [SerializeField] float InactivityCountdownSeconds = 15;
-    private float timeRemaining;
 
     [Tooltip("LocalizedStringEvent that contains the variable for inserting countdown time")]
     [SerializeField] LocalizeStringEvent localizedStringEvent;
+
     private LocalizedString CountdownText;
     private StringVariable StringVariable = new StringVariable();
     private string stringTimeRemaining = "Clock not yet started.";
-
-    [SerializeField] ViewController ViewController;
 
     private Coroutine CountdownCoroutine;
 
@@ -39,6 +39,19 @@ public class ResetCountdown : MonoBehaviour
 
         // Set up the initial time remaining
         timeRemaining = InactivityCountdownSeconds;
+
+        EventManager.AddListener("UserActive", OnUserActive);
+        EventManager.AddListener("UserInactive", OnUserInactive);
+    }
+
+    private void OnUserActive(Dictionary<string, object> message)
+    {
+        StopAndResetTimer();
+    }
+
+    private void OnUserInactive(Dictionary<string, object> message)
+    {
+        RestartTimer();
     }
 
     private void DisplayTime(float timeToDisplay)
@@ -87,6 +100,6 @@ public class ResetCountdown : MonoBehaviour
         DisplayTime(timeRemaining); // 00:00
         yield return new WaitForSeconds(1f);
 
-        ViewController.PopAllViews();
+        EventManager.TriggerEvent("UserTimeout", new Dictionary<string, object> { { "event", "UserTimeout" } });
     }
 }

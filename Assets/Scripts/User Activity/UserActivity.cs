@@ -22,10 +22,6 @@ using TouchPhase =  UnityEngine.InputSystem.TouchPhase;
 
 public class UserActivity : MonoBehaviour
 {
-    [SerializeField] ResetCountdown ResetCountdown;
-
-    [SerializeField] ViewController ViewController;
-
     [SerializeField] float InactivityTimeoutSeconds = 5;
 
     private bool TimerActive = false;
@@ -40,15 +36,16 @@ public class UserActivity : MonoBehaviour
         ResetInvokeOnUserInactive();
     }
 
+    private void OnUserActive()
+    {   
+        EventManager.TriggerEvent("UserActive", new Dictionary<string, object> { { "event", "UserActive" } });
+        ResetInvokeOnUserInactive();
+    }
+
+
     private void OnCancel() 
     {   
-        if (!ViewController.IsViewOnTopOfStack(ViewController.IdleView))
-        {
-            ResetCountdown.StopAndResetTimer();
-            setTimerActive();
-        }
-
-        ResetInvokeOnUserInactive();
+        OnUserActive();
     }
 
     private void Update()
@@ -58,17 +55,16 @@ public class UserActivity : MonoBehaviour
         // Check if the left mouse button is clicked
         if (Mouse.current.leftButton.wasPressedThisFrame)
         {
-            // Debug.Log("Mouse.current.leftButton.wasPressedThisFrame");
-            ResetInvokeOnUserInactive();
+            OnUserActive();
         }
 
         // Check if the touch initiated
+        // (at least one touch)
         if (
             Touch.activeTouches.Count > 0 && 
             Touch.activeTouches[0].phase == TouchPhase.Began
         ) {
-            // Debug.Log("At least one touch");
-            ResetInvokeOnUserInactive();
+            OnUserActive();
         }
     }
 
@@ -76,36 +72,20 @@ public class UserActivity : MonoBehaviour
     // StartCoroutine, WaitForSeconds, StopCoroutine
     public void ResetInvokeOnUserInactive()
     {
-        //Debug.Log("User is active on " + this.gameObject);
+        // Debug.Log("User is active on " + this.gameObject);
 
         CancelInvoke("OnUserInactive");
-
-        // Remove inactivity timeout countdown
-        if (ViewController.IsViewOnTopOfStack(ViewController.InactivityView))
-        {
-            ViewController.PopOneView();
-            ResetCountdown.StopAndResetTimer();
-            setTimerActive();
-        }
-
-        if (TimerActive)
-        {
-            // Debug.Log("TimerActive, resetting");
-            Invoke("OnUserInactive", InactivityTimeoutSeconds);
-        }
-        else 
-        {
-            // Debug.Log("Timer is not active, not resetting");
-        }
+        Invoke("OnUserInactive", InactivityTimeoutSeconds);
     }
 
     private void OnUserInactive()
     {
         // Debug.Log("User is inactive on " + this.gameObject);
-        
-        setTimerInactive();
-        ResetCountdown.RestartTimer();
-        ViewController.PushView(ViewController.InactivityView);
+
+        if (TimerActive)
+        {
+            EventManager.TriggerEvent("UserInactive", new Dictionary<string, object> { { "event", "UserInactive" } });
+        }
     }
 
     public void setTimerInactive()
